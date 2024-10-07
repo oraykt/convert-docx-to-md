@@ -39,9 +39,8 @@ async function extractAndSaveImages(htmlContent, imagesDir, outputMarkdown) {
         console.log(`Image saved: ${imagePath}`);
 
         // Replace the base64 image in the HTML with the Markdown reference
-        const relativeImagePath = path.relative(path.dirname(outputMarkdown), imagePath);
-        htmlContent = htmlContent.replace(imageTag, `![Image](${relativeImagePath})`);
-
+        const relativeImagePath = path.relative(path.dirname(outputMarkdown), imagePath).replace(/\\/g, '/');
+        htmlContent = htmlContent.replace(imageTag, `<img alt="${imageName}" src="${relativeImagePath}">`);
         imageIndex++;
     }
 
