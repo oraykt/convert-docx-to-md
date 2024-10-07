@@ -1,0 +1,18 @@
+{
+  "name": "convert-docx-to-md",
+  "version": "1.0.0",
+  "description": "",
+  "main": "convertDocxToMarkdown.js",
+  "scripts": {
+    "start": "node convertDocxToMarkdown.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "mammoth": "^1.8.0",
+    "turndown": "^7.2.0",
+    "turndown-plugin-gfm": "^1.0.2"
+  }
+}
