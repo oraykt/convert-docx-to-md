@@ -1,26 +1,40 @@
-import { convertDocxToMarkdown } from './docxConverter';
+import { convertDocxToZip } from './docxConverter';
 
 document.getElementById('upload').addEventListener('change', handleFileUpload);
 
 async function handleFileUpload(event) {
     const file = event.target.files[0];
+
+    // Check if the uploaded file is a DOCX file
     if (file && file.name.endsWith('.docx')) {
         // Clear existing download links before processing a new file
         clearPreviousDownloadLink();
 
-        // Convert the DOCX to Markdown
-        const markdown = await convertDocxToMarkdown(file);
+        // Show a loading indicator while processing
+        const loadingIndicator = document.createElement('p');
+        loadingIndicator.textContent = 'Processing... Please wait.';
+        document.getElementById('downloadLink').appendChild(loadingIndicator);
 
-        if (markdown) {
-            // Create a new Blob for the Markdown file
-            const blob = new Blob([markdown], { type: 'text/markdown' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = 'converted.md';
-            link.textContent = 'Download Markdown File';
+        // Convert the DOCX to a ZIP file (Markdown + images)
+        try {
+            const zipBlob = await convertDocxToZip(file);
 
-            // Append the link to the page
-            document.getElementById('downloadLink').appendChild(link);
+            if (zipBlob) {
+                // Remove the loading indicator
+                // document.getElementById('downloadLink').removeChild(loadingIndicator);
+
+                // Create a new Blob for the ZIP file
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(zipBlob);
+                link.download = 'converted.zip';
+                link.textContent = 'Download ZIP (Markdown + Images)';
+
+                // Append the link to the page
+                document.getElementById('downloadLink').replaceChildren(link);
+            }
+        } catch (error) {
+            console.error('Error during file conversion:', error);
+            alert('An error occurred while processing the file.');
         }
     } else {
         alert('Please upload a valid DOCX file.');
