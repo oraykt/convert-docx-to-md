@@ -67,22 +67,34 @@ function convertHtmlTableToMarkdown(html) {
             const columns = row.match(/<t[dh]>(.*?)<\/t[dh]>/gs);
             if (!columns) return; // Skip if no columns are found
 
-            // Extract the text content from each column
-            const columnText = columns.map(col => col.replace(/<\/?[^>]+(>|$)/g, '').trim());
+            // Extract the text content from each column and add padding
+            const columnText = columns.map(col => {
+                // Add space before and after text in each cell
+                return `${col.replace(/<\/?[^>]+(>|$)/g, '').trim()}`;
+            });
 
-            // Join columns with ' | ' to create the Markdown row
-            markdownTable += '| ' + columnText.join(' | ') + ' |\n';
+            // Join columns with ' | ' and add new line
+            markdownTable += '| ' + columnText.join(' | ') + ' |\r\n';
 
-            // Add a separator after the header row (first row)
+            // Add separator after the header row
             if (rowIndex === 0) {
-                const separator = '| ' + columnText.map(() => '---').join(' | ') + ' |\n';
-                markdownTable += separator;
+                markdownTable += '| ' + columnText.map(() => '---').join(' | ') + ' |\r\n';
             }
         });
 
-        return markdownTable;
+        // Ensure we add a newline after the table
+        return `\r\n${markdownTable}\r\n`;
     });
 }
+
+
+
+// Function to fix table rows that are merged into one line by checking for '| |'
+function fixMarkdownTableFormatting(markdownContent) {
+    // Look for occurrences of "| |" and replace them with newlines between rows
+    return markdownContent.replace(/\|\s+\|\s+/g, '|\n| ');
+}
+
 
 // Function to convert DOCX to Markdown and handle images & tables
 async function convertDocxToMarkdown(inputFilePath, outputFilePath, imagesDir) {
@@ -106,15 +118,19 @@ async function convertDocxToMarkdown(inputFilePath, outputFilePath, imagesDir) {
         htmlContent = convertHtmlTableToMarkdown(htmlContent);
 
         // Convert remaining HTML content to Markdown
-        const markdownContent = turndownService.turndown(htmlContent);
+        let markdownContent = turndownService.turndown(htmlContent);
 
-        // Save the Markdown content to a file
-        await fs.promises.writeFile(outputFilePath, markdownContent, 'utf-8');
+        // Post-process markdown to ensure proper table formatting
+        markdownContent = fixMarkdownTableFormatting(markdownContent);
+
+        // Save the Markdown content to a file with correct newlines
+        await fs.promises.writeFile(outputFilePath, markdownContent, { encoding: 'utf-8', flag: 'w' });
         console.log(`Conversion successful! Markdown saved to ${outputFilePath}`);
     } catch (error) {
         console.error('Error converting DOCX to Markdown:', error);
     }
 }
+
 
 // Example usage
 const inputDocx = __dirname + '/Test.docx';             // Path to the DOCX file
